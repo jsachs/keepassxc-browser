@@ -91,3 +91,7 @@ var siteMatch = function(site, url) {
     const rx = matchPatternToRegExp(site);
     return url.match(rx);
 };
+
+function tr(key, params) {
+    return browser.i18n.getMessage(key, params);
+};
