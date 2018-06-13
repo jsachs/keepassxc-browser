@@ -1,5 +1,7 @@
 var assert = require('assert'),
-    rewire = require('rewire');
+    //rewire = require('rewire');
+    rewire = require('rewire'),
+    browser = require('sinon-chrome');
 
 var BG_URL = '../keepassxc-browser/background/';
 
@@ -69,5 +71,14 @@ describe('Unit tests with background/keepass.js', function() {
         const message = nacl.util.encodeUTF8(serverReply);
         console.log('Decrypted server reply: ' + message);
         assert.equal(message, serverMessage);
+    });
+});
+
+describe('Content script unit tests', function() {
+    it('Test input field functions', function() {
+        var contentScript = rewire('../keepassxc-browser/keepassxc-browser.js');
+        var cipFields = contentScript.__get__('cipFields');
+        const inputs = cipFields.getAllFields();
+        assert.equal(inputs.length, 0);
     });
 });

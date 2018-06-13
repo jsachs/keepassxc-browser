@@ -1,5 +1,5 @@
 var chrome = require('selenium-webdriver/chrome'),
-       firefox = require('selenium-webdriver/firefox'),
+    firefox = require('selenium-webdriver/firefox'),
     webdriver = require('selenium-webdriver'),
     test = require('selenium-webdriver/testing'),
     assert = require('selenium-webdriver/testing/assert'),
