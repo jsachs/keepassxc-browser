@@ -63,10 +63,10 @@ browser.runtime.onMessage.addListener(function(req, sender, callback) {
             cipDefine.init();
         } else if (req.action === 'clear_credentials') {
             cipEvents.clearCredentials();
-            callback();
+            return;
         } else if (req.action === 'activated_tab') {
             cipEvents.triggerActivatedTab();
-            callback();
+            return;
         } else if (req.action === 'redetect_fields') {
             browser.runtime.sendMessage({
                 action: 'load_settings',

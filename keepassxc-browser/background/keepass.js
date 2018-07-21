@@ -128,227 +128,235 @@ keepass.sendNativeMessage = function(request, enableTimeout = false) {
     });
 };
 
-keepass.addCredentials = function(callback, tab, username, password, url) {
-    keepass.updateCredentials(callback, tab, null, username, password, url);
-};
-
-keepass.updateCredentials = function(callback, tab, entryId, username, password, url) {
-    page.debug('keepass.updateCredentials(callback, {1}, {2}, {3}, [password], {4})', tab.id, entryId, username, url);
-    if (tab && page.tabs[tab.id]) {
-        page.tabs[tab.id].errorMessage = null;
-    }
-
-    keepass.testAssociation((response) => {
-        if (!response) {
-            browserAction.showDefault(null, tab);
-            callback([]);
-            return;
-        }
-
-        const kpAction = kpActions.SET_LOGIN;
-        const {dbid} = keepass.getCryptoKey();
-        const nonce = keepass.getNonce();
-        const incrementedNonce = keepass.incrementedNonce(nonce);
-
-        let messageData = {
-            action: kpAction,
-            id: dbid,
-            login: username,
-            password: password,
-            url: url,
-            submitUrl: url
-        };
-
-        if (entryId) {
-            messageData.uuid = entryId;
-        }
-
-        const request = {
-            action: kpAction,
-            message: keepass.encrypt(messageData, nonce),
-            nonce: nonce,
-            clientID: keepass.clientID
-        };
-
-        keepass.sendNativeMessage(request).then((response) => {
-            if (response.message && response.nonce) {
-                const res = keepass.decrypt(response.message, response.nonce);
-                if (!res) {
-                    keepass.handleError(tab, kpErrors.CANNOT_DECRYPT_MESSAGE);
-                    callback('error');
-                    return;
-                }
-
-                const message = nacl.util.encodeUTF8(res);
-                const parsed = JSON.parse(message);
-                callback(keepass.verifyResponse(parsed, incrementedNonce) ? 'success' : 'error');
-            }
-            else if (response.error && response.errorCode) {
-                keepass.handleError(tab, response.errorCode, response.error);
-                callback('error');
-            }
-            else {
-                browserAction.showDefault(null, tab);
-            }
-        });
+keepass.addCredentials = function(tab, username, password, url) {
+    return new Promise((resolve, reject) => {
+        resolve(keepass.updateCredentials(tab, null, username, password, url));
     });
 };
 
-keepass.retrieveCredentials = function(callback, tab, url, submiturl, forceCallback, triggerUnlock = false) {
-    page.debug('keepass.retrieveCredentials(callback, {1}, {2}, {3}, {4})', tab.id, url, submiturl, forceCallback);
-
-    keepass.testAssociation((response) => {
-        if (!response) {
-            browserAction.showDefault(null, tab);
-            if (forceCallback) {
-                callback([]);
-            }
-            return;
-        }
-
+keepass.updateCredentials = function(tab, entryId, username, password, url) {
+    return new Promise((resolve, reject) => {
+        page.debug('keepass.updateCredentials(callback, {1}, {2}, {3}, [password], {4})', tab.id, entryId, username, url);
         if (tab && page.tabs[tab.id]) {
             page.tabs[tab.id].errorMessage = null;
         }
 
-        if (!keepass.isConnected) {
-            callback([]);
-            return;
-        }
+        keepass.testAssociation((response) => {
+            if (!response) {
+                browserAction.showDefault(null, tab);
+                resolve([]);
+                return;
+            }
 
-        let entries = [];
-        let keys = [];
-        const kpAction = kpActions.GET_LOGINS;
-        const nonce = keepass.getNonce();
-        const incrementedNonce = keepass.incrementedNonce(nonce);
-        const {dbid} = keepass.getCryptoKey();
-    
-        for (let keyHash in keepass.keyRing) {
-            keys.push({
-                id: keepass.keyRing[keyHash].id,
-                key: keepass.keyRing[keyHash].key
-            });
-        }
+            const kpAction = kpActions.SET_LOGIN;
+            const {dbid} = keepass.getCryptoKey();
+            const nonce = keepass.getNonce();
+            const incrementedNonce = keepass.incrementedNonce(nonce);
 
-        let messageData = {
-            action: kpAction,
-            id: dbid,
-            url: url,
-            keys: keys
-        };
+            let messageData = {
+                action: kpAction,
+                id: dbid,
+                login: username,
+                password: password,
+                url: url,
+                submitUrl: url
+            };
 
-        if (submiturl) {
-            messageData.submitUrl = submiturl;
-        }
+            if (entryId) {
+                messageData.uuid = entryId;
+            }
 
-        const request = {
-            action: kpAction,
-            message: keepass.encrypt(messageData, nonce),
-            nonce: nonce,
-            clientID: keepass.clientID
-        };
+            const request = {
+                action: kpAction,
+                message: keepass.encrypt(messageData, nonce),
+                nonce: nonce,
+                clientID: keepass.clientID
+            };
 
-        keepass.sendNativeMessage(request).then((response) => {
-            if (response.message && response.nonce) {
-                const res = keepass.decrypt(response.message, response.nonce);
-                if (!res) {
-                    keepass.handleError(tab, kpErrors.CANNOT_DECRYPT_MESSAGE);
-                    callback([]);
-                    return;
-                }
-
-                const message = nacl.util.encodeUTF8(res);
-                const parsed = JSON.parse(message);
-                keepass.setcurrentKeePassXCVersion(parsed.version);
-
-                if (keepass.verifyResponse(parsed, incrementedNonce)) {
-                    entries = parsed.entries;
-                    keepass.updateLastUsed(keepass.databaseHash);
-                    if (entries.length === 0) {
-                        // questionmark-icon is not triggered, so we have to trigger for the normal symbol
-                        browserAction.showDefault(null, tab);
+            keepass.sendNativeMessage(request).then((response) => {
+                if (response.message && response.nonce) {
+                    const res = keepass.decrypt(response.message, response.nonce);
+                    if (!res) {
+                        keepass.handleError(tab, kpErrors.CANNOT_DECRYPT_MESSAGE);
+                        resolve('error');
+                        return;
                     }
-                    callback(entries);
+
+                    const message = nacl.util.encodeUTF8(res);
+                    const parsed = JSON.parse(message);
+                    resolve(keepass.verifyResponse(parsed, incrementedNonce) ? 'success' : 'error');
+                }
+                else if (response.error && response.errorCode) {
+                    keepass.handleError(tab, response.errorCode, response.error);
+                    resolve('error');
                 }
                 else {
-                    console.log('RetrieveCredentials for ' + url + ' rejected');
+                    browserAction.showDefault(null, tab);
                 }
-                page.debug('keepass.retrieveCredentials() => entries.length = {1}', entries.length);
-            }
-            else if (response.error && response.errorCode) {
-                keepass.handleError(tab, response.errorCode, response.error);
-                callback([]);
-            }
-            else {
-                browserAction.showDefault(null, tab);
-                callback([]);
-            }
+            });
         });
-    }, tab, false, triggerUnlock);
+    });
 };
 
-keepass.generatePassword = function(callback, tab, forceCallback) {
-    if (!keepass.isConnected) {
-        callback([]);
-        return;
-    }
+keepass.retrieveCredentials = function(tab, url, submiturl, forceCallback, triggerUnlock = false) {
+    page.debug('keepass.retrieveCredentials(callback, {1}, {2}, {3}, {4})', tab.id, url, submiturl, forceCallback);
 
-    keepass.testAssociation((taresponse) => {
-        if (!taresponse) {
-            browserAction.showDefault(null, tab);
-            if (forceCallback) {
-                callback([]);
-            }
-            return;
-        }
-
-        if (keepass.currentKeePassXC.versionParsed < keepass.requiredKeePassXC) {
-            callback([]);
-            return;
-        }
-
-        let passwords = [];
-        const kpAction = kpActions.GENERATE_PASSWORD;
-        const nonce = keepass.getNonce();
-        const incrementedNonce = keepass.incrementedNonce(nonce);
-
-        const request = {
-            action: kpAction,
-            nonce: nonce,
-            clientID: keepass.clientID
-        };
-
-        keepass.sendNativeMessage(request).then((response) => {
-            if (response.message && response.nonce) {
-                const res = keepass.decrypt(response.message, response.nonce);
-                if (!res) {
-                    keepass.handleError(tab, kpErrors.CANNOT_DECRYPT_MESSAGE);
-                    callback([]);
-                    return;
+    return new Promise((resolve, reject) => {
+        keepass.testAssociation((response) => {
+            if (!response) {
+                browserAction.showDefault(null, tab);
+                if (forceCallback) {
+                    resolve([]);
                 }
+                return;
+            }
 
-                const message = nacl.util.encodeUTF8(res);
-                const parsed = JSON.parse(message);
-                keepass.setcurrentKeePassXCVersion(parsed.version);
+            if (tab && page.tabs[tab.id]) {
+                page.tabs[tab.id].errorMessage = null;
+            }
 
-                if (keepass.verifyResponse(parsed, incrementedNonce)) {
-                    if (parsed.entries) {
-                        passwords = parsed.entries;
+            if (!keepass.isConnected) {
+                resolve([]);
+                return;
+            }
+
+            let entries = [];
+            let keys = [];
+            const kpAction = kpActions.GET_LOGINS;
+            const nonce = keepass.getNonce();
+            const incrementedNonce = keepass.incrementedNonce(nonce);
+            const {dbid} = keepass.getCryptoKey();
+        
+            for (let keyHash in keepass.keyRing) {
+                keys.push({
+                    id: keepass.keyRing[keyHash].id,
+                    key: keepass.keyRing[keyHash].key
+                });
+            }
+
+            let messageData = {
+                action: kpAction,
+                id: dbid,
+                url: url,
+                keys: keys
+            };
+
+            if (submiturl) {
+                messageData.submitUrl = submiturl;
+            }
+
+            const request = {
+                action: kpAction,
+                message: keepass.encrypt(messageData, nonce),
+                nonce: nonce,
+                clientID: keepass.clientID
+            };
+
+            keepass.sendNativeMessage(request).then((response) => {
+                if (response.message && response.nonce) {
+                    const res = keepass.decrypt(response.message, response.nonce);
+                    if (!res) {
+                        keepass.handleError(tab, kpErrors.CANNOT_DECRYPT_MESSAGE);
+                        resolve([]);
+                        return;
+                    }
+
+                    const message = nacl.util.encodeUTF8(res);
+                    const parsed = JSON.parse(message);
+                    keepass.setcurrentKeePassXCVersion(parsed.version);
+
+                    if (keepass.verifyResponse(parsed, incrementedNonce)) {
+                        entries = parsed.entries;
                         keepass.updateLastUsed(keepass.databaseHash);
+                        if (entries.length === 0) {
+                            // questionmark-icon is not triggered, so we have to trigger for the normal symbol
+                            browserAction.showDefault(null, tab);
+                        }
+                        resolve(entries);
                     }
                     else {
-                        console.log('No entries returned. Is KeePassXC up-to-date?');
+                        console.log('RetrieveCredentials for ' + url + ' rejected');
                     }
+                    page.debug('keepass.retrieveCredentials() => entries.length = {1}', entries.length);
+                }
+                else if (response.error && response.errorCode) {
+                    keepass.handleError(tab, response.errorCode, response.error);
+                    resolve([]);
                 }
                 else {
-                    console.log('GeneratePassword rejected');
+                    browserAction.showDefault(null, tab);
+                    resolve([]);
                 }
-                callback(passwords);
+            });
+        }, tab, false, triggerUnlock);
+    });
+};
+
+keepass.generatePassword = function(tab, forceCallback) {
+    return new Promise((resolve, reject) => {
+        if (!keepass.isConnected) {
+            resolve([]);
+            return;
+        }
+
+        keepass.testAssociation((taresponse) => {
+            if (!taresponse) {
+                browserAction.showDefault(null, tab);
+                if (forceCallback) {
+                    resolve([]);
+                }
+                return;
             }
-            else if (response.error && response.errorCode) {
-                keepass.handleError(tab, response.errorCode, response.error);
+
+            if (keepass.currentKeePassXC.versionParsed < keepass.requiredKeePassXC) {
+                resolve([]);
+                return;
             }
-        });
-    }, tab);
+
+            let passwords = [];
+            const kpAction = kpActions.GENERATE_PASSWORD;
+            const nonce = keepass.getNonce();
+            const incrementedNonce = keepass.incrementedNonce(nonce);
+
+            const request = {
+                action: kpAction,
+                nonce: nonce,
+                clientID: keepass.clientID
+            };
+
+            keepass.sendNativeMessage(request).then((response) => {
+                if (response.message && response.nonce) {
+                    const res = keepass.decrypt(response.message, response.nonce);
+                    if (!res) {
+                        keepass.handleError(tab, kpErrors.CANNOT_DECRYPT_MESSAGE);
+                        resolve([]);
+                        return;
+                    }
+
+                    const message = nacl.util.encodeUTF8(res);
+                    const parsed = JSON.parse(message);
+                    keepass.setcurrentKeePassXCVersion(parsed.version);
+
+                    if (keepass.verifyResponse(parsed, incrementedNonce)) {
+                        if (parsed.entries) {
+                            passwords = parsed.entries;
+                            keepass.updateLastUsed(keepass.databaseHash);
+                        }
+                        else {
+                            console.log('No entries returned. Is KeePassXC up-to-date?');
+                        }
+                    }
+                    else {
+                        console.log('GeneratePassword rejected');
+                    }
+                    resolve(passwords);
+                }
+                else if (response.error && response.errorCode) {
+                    keepass.handleError(tab, response.errorCode, response.error);
+                }
+            });
+        }, tab);
+    });
 };
 
 keepass.associate = function(callback, tab) {

@@ -69,7 +69,7 @@ $(function() {
     });
 
     $('#redetect-fields-button').click(function() {
-        browser.tabs.query({"active": true, "currentWindow": true}).then(function(tabs) {
+        browser.tabs.query({'active': true, 'currentWindow': true}).then(function(tabs) {
             if (tabs.length === 0) {
                 return; // For example: only the background devtools or a popup are opened
             }
@@ -88,6 +88,6 @@ $(function() {
     });
 
     browser.runtime.sendMessage({
-        action: "get_status"
+        action: 'get_status'
     }).then(status_response);
 });
