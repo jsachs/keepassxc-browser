@@ -286,7 +286,7 @@ keepass.retrieveCredentials = function(callback, tab, url, submiturl, forceCallb
     }, tab, false, triggerUnlock);
 };
 
-keepass.generatePassword = function(callback, tab, forceCallback) {
+keepass.generatePassword = function(callback, tab) {
     if (!keepass.isConnected) {
         callback([]);
         return;
@@ -295,9 +295,7 @@ keepass.generatePassword = function(callback, tab, forceCallback) {
     keepass.testAssociation((taresponse) => {
         if (!taresponse) {
             browserAction.showDefault(null, tab);
-            if (forceCallback) {
-                callback([]);
-            }
+            callback([]);
             return;
         }
 

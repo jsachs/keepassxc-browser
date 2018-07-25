@@ -100,7 +100,8 @@ kpxcDefine.initDescription = function() {
             fieldIds.push(cipFields.prepareId(i));
         }
 
-        cip.settings['defined-credential-fields'][document.location.href] = {
+        const location = cip.getDocumentLocation();
+        cip.settings['defined-credential-fields'][location] = {
             username: kpxcDefine.selection.username,
             password: kpxcDefine.selection.password,
             fields: fieldIds
@@ -119,12 +120,13 @@ kpxcDefine.initDescription = function() {
     description.append(buttonAgain);
     description.append(buttonDismiss);
 
-    if (cip.settings['defined-credential-fields'] && cip.settings['defined-credential-fields'][document.location.href]) {
+    const location = cip.getDocumentLocation();
+    if (cip.settings['defined-credential-fields'] && cip.settings['defined-credential-fields'][location]) {
         const p = kpxcUI.createElement('p', '', {}, 'For this page credential fields are already selected and will be overwritten.<br />');
         const buttonDiscard = kpxcUI.createElement('button', 'w3-btn w3-red w3-round w3-small', {'id': 'kpxcDefine-btn-discard'}, 'Discard');
         buttonDiscard.style.marginTop = '5px';
         buttonDiscard.onclick = function() {
-            delete cip.settings['defined-credential-fields'][document.location.href];
+            delete cip.settings['defined-credential-fields'][location];
 
             browser.runtime.sendMessage({
                 action: 'save_settings',
