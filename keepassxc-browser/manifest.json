@@ -56,10 +56,11 @@
 				"global.js"
 			],
 			"css": [
-				"content/autocomplete.css",
-				"content/define.css",
-				"content/pwgen.css",
-				"content/w3.css"
+				"css/autocomplete.css",
+				"css/define.css",
+				"css/keepassxc-browser.css",
+				"css/pwgen.css",
+				"css/w3.css"
 			],
 			"run_at": "document_idle",
 			"all_frames": true

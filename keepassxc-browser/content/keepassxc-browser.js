@@ -317,7 +317,7 @@ cipFields.getAllCombinations = function(inputs) {
 
     if (_singleInputEnabledForPage && fields.length === 0 && uField) {
         const combination = {
-            username: uField[0].getAttribute('data-cip-id'),
+            username: uField.getAttribute('data-kpxc-id'),
             password: null
         };
         fields.push(combination);
@@ -401,7 +401,6 @@ cipFields.getUsernameField = function(passwordId, checkDisabled) {
         return null;
     }
 
-    //const form = passwordField.closest('form')[0];
     const form = passwordField.closest('form');
     let usernameField = null;
 
@@ -463,7 +462,6 @@ cipFields.getPasswordField = function(usernameId, checkDisabled) {
         return null;
     }
 
-    //const form = usernameField.closest('form')[0];
     const form = usernameField.closest('form');
     let passwordField = null;
 
@@ -1082,7 +1080,7 @@ cip.fillInFromActiveElement = function(suppressWarnings, passOnly = false) {
 cip.fillInFromActiveElementTOTPOnly = function(suppressWarnings) {
     const el = document.activeElement;
     cipFields.setUniqueId(el);
-    const fieldId = cipFields.prepareId(el.getAttribute('data-cip-id'));
+    const fieldId = cipFields.prepareId(el.getAttribute('data-kpxc-id'));
 
     browser.runtime.sendMessage({
         action: 'page_get_login_id'

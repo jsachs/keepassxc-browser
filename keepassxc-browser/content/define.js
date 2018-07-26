@@ -82,8 +82,8 @@ kpxcDefine.initDescription = function() {
     buttonConfirm.style.marginRight = '15px';
     buttonConfirm.style.display = 'none';
     buttonConfirm.onclick = function() {
-        if (!cip.settings['defined-credential-fields']) {
-            cip.settings['defined-credential-fields'] = {};
+        if (!cip.settings['defined-custom-fields']) {
+            cip.settings['defined-custom-fields'] = {};
         }
 
         if (kpxcDefine.selection.username) {
@@ -101,7 +101,7 @@ kpxcDefine.initDescription = function() {
         }
 
         const location = cip.getDocumentLocation();
-        cip.settings['defined-credential-fields'][location] = {
+        cip.settings['defined-custom-fields'][location] = {
             username: kpxcDefine.selection.username,
             password: kpxcDefine.selection.password,
             fields: fieldIds
@@ -121,12 +121,12 @@ kpxcDefine.initDescription = function() {
     description.append(buttonDismiss);
 
     const location = cip.getDocumentLocation();
-    if (cip.settings['defined-credential-fields'] && cip.settings['defined-credential-fields'][location]) {
+    if (cip.settings['defined-custom-fields'] && cip.settings['defined-custom-fields'][location]) {
         const p = kpxcUI.createElement('p', '', {}, 'For this page credential fields are already selected and will be overwritten.<br />');
         const buttonDiscard = kpxcUI.createElement('button', 'w3-btn w3-red w3-round w3-small', {'id': 'kpxcDefine-btn-discard'}, 'Discard');
         buttonDiscard.style.marginTop = '5px';
         buttonDiscard.onclick = function() {
-            delete cip.settings['defined-credential-fields'][location];
+            delete cip.settings['defined-custom-fields'][location];
 
             browser.runtime.sendMessage({
                 action: 'save_settings',
@@ -220,12 +220,13 @@ kpxcDefine.markFields = function(chooser, pattern) {
             return true;
         }
 
-        if (cipFields.isVisible(i) && i.style.visibility !== 'hidden' && i.style.visibility !== 'collapsed') {
+        if (cipFields.isVisible(i)) {
             const field = kpxcUI.createElement('div', 'kpxcDefine-fixed-field', {'data-kpxc-id': i.getAttribute('data-kpxc-id')});
-            field.style.top = i.offsetTop + 'px';
-            field.style.left = i.offsetLeft + 'px';
-            field.style.width = i.offsetWidth + 'px';
-            field.style.height = i.offsetHeight + 'px';
+            const rect = i.getBoundingClientRect();
+            field.style.top = rect.top + 'px';
+            field.style.left = rect.left + 'px';
+            field.style.width = rect.width + 'px';
+            field.style.height = rect.height + 'px';
             field.onclick = function(e) {
                 kpxcDefine.eventFieldClick(e);
             };
@@ -235,7 +236,9 @@ kpxcDefine.markFields = function(chooser, pattern) {
                 i.classList.remove('kpxcDefine-fixed-hover-field');
             };
             const elem = $(chooser);
-            elem.append(field);
+            if (elem) {
+                elem.append(field);
+            }
         }
     }
 };
