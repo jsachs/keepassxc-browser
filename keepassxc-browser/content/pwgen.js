@@ -370,13 +370,13 @@ kpxcPassword.whiteButton = function(button) {
 };
 
 kpxcPassword.enableButtons = function() {
-    $('#kpxc-genpw-btn-generate').innerHTML = 'Generate';
+    $('#kpxc-genpw-btn-generate').textContent = 'Generate';
     $('#kpxc-genpw-btn-clipboard').style.display = 'inline-block';
     $('#kpxc-genpw-btn-fillin').style.display = 'inline-block';
 };
 
 kpxcPassword.disableButtons = function() {
-    $('#kpxc-genpw-btn-generate').innerHTML = 'Try again';
+    $('#kpxc-genpw-btn-generate').textContent = 'Try again';
     $('#kpxc-genpw-btn-clipboard').style.display = 'none';
     $('#kpxc-genpw-btn-fillin').style.display = 'none';
 };

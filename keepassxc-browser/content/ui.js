@@ -9,7 +9,7 @@ var $ = function(elem)
 var kpxcUI = {};
 
 // Wrapper for creating elements
-kpxcUI.createElement = function(type, classes, attributes, innerHTML) {
+kpxcUI.createElement = function(type, classes, attributes, textContent) {
     const element = document.createElement(type);
 
     if (classes) {
@@ -25,8 +25,8 @@ kpxcUI.createElement = function(type, classes, attributes, innerHTML) {
         });
     }
 
-    if (innerHTML !== undefined) {
-        element.innerHTML = innerHTML;
+    if (textContent !== undefined) {
+        element.textContent = textContent;
     }
 
     return element;

@@ -34,8 +34,9 @@ kpxcAutocomplete.create = function(input) {
 
         for (const c of kpxcAutocomplete.elements) {
             const item = document.createElement('div');
-            item.innerHTML += c.label;
-            item.innerHTML += '<input type=\"hidden\" value=\"' + c.value + '\">';
+            item.textContent += c.label;
+            const itemInput = kpxcUI.createElement('input', '', {'type': 'hidden', 'value': c.value});
+            item.append(itemInput);
             item.addEventListener('click', function(e) {
                 input.value = this.getElementsByTagName('input')[0].value;
                 fillPassword(input.value);

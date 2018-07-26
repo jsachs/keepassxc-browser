@@ -158,7 +158,7 @@ kpxcDefine.resetSelection = function() {
 
     const fields = $('#kpxcDefine-fields');
     if (fields) {
-        fields.innerHTML = '';
+        fields.textContent = '';
     }
 };
 
@@ -178,7 +178,7 @@ kpxcDefine.markAllUsernameFields = function(chooser) {
         const field = e.currentTarget;
         kpxcDefine.selection.username = field.getAttribute('kpxc-id');
         field.classList.add('kpxcDefine-fixed-username-field');
-        field.innerHTML = 'Username';
+        field.textContent = 'Username';
         field.onclick = null;
         kpxcDefine.prepareStep2();
         kpxcDefine.markAllPasswordFields('#kpxcDefine-fields');
@@ -191,7 +191,7 @@ kpxcDefine.markAllPasswordFields = function(chooser) {
         const field = e.currentTarget;
         kpxcDefine.selection.password = field.getAttribute('kpxc-id');
         field.classList.add('kpxcDefine-fixed-password-field');
-        field.innerHTML = 'Password';
+        field.textContent = 'Password';
         field.onclick = null;
         kpxcDefine.prepareStep3();
         kpxcDefine.markAllStringFields('kpxcDefine-fields');
@@ -207,7 +207,7 @@ kpxcDefine.markAllStringFields = function(chooser) {
 
         const count = Object.keys(kpxcDefine.selection.fields).length;
         field.classList.add('kpxcDefine-fixed-string-field');
-        field.innerHTML = 'String field #' + String(count);
+        field.textContent = 'String field #' + String(count);
         field.onclick = null;
     };
     kpxcDefine.markFields(chooser, cipFields.inputQueryPattern + ', select');
@@ -246,9 +246,9 @@ kpxcDefine.markFields = function(chooser, pattern) {
 kpxcDefine.prepareStep1 = function() {
     const help = $('#kpxcDefine-help');
     help.style.marginBottom = '0px';
-    help.innerHTML = '';
+    help.textContent = '';
 
-    $('#kpxcDefine-chooser-headline').innerHTML = '1. Choose a username field';
+    $('#kpxcDefine-chooser-headline').textContent = '1. Choose a username field';
     kpxcDefine.dataStep = 1;
     $('#kpxcDefine-btn-skip').style.display = 'inline-block';
     $('#kpxcDefine-btn-confirm').style.display = 'none';
@@ -258,16 +258,17 @@ kpxcDefine.prepareStep1 = function() {
 kpxcDefine.prepareStep2 = function() {
     const help = $('#kpxcDefine-help');
     help.style.marginBottom = '0px';
-    help.innerHTML = '';
+    help.textContent = '';
 
-    $('#kpxcDefine-chooser-headline').innerHTML = '2. Now choose a password field';
+    $('#kpxcDefine-chooser-headline').textContent = '2. Now choose a password field';
     kpxcDefine.dataStep = 2;
     $('#kpxcDefine-btn-again').style.display = 'inline-block';
 };
 
 kpxcDefine.prepareStep3 = function() {
-    $('#kpxcDefine-help').innerHTML = 'Please confirm your selection or choose more fields as <em>String fields</em>.';
-    $('#kpxcDefine-chooser-headline').innerHTML = '3. Confirm selection';
+    $('#kpxcDefine-help').style.marginBottom = '10px';
+    $('#kpxcDefine-help').textContent = 'Please confirm your selection or choose more fields as String fields.';
+    $('#kpxcDefine-chooser-headline').textContent = '3. Confirm selection';
     kpxcDefine.dataStep = 3;
     $('#kpxcDefine-btn-skip').style.display = 'none';
     $('#kpxcDefine-btn-again').style.display = 'inline-block';
