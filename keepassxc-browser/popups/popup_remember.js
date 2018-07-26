@@ -13,22 +13,24 @@ function _initialize(tab) {
 
     // no existing credentials to update --> disable update-button
     if (_tab.credentials.list.length === 0) {
-        $('#btn-update').attr('disabled', true).removeClass('btn-warning');
+        const updateButton = $('#btn-update');
+        updateButton.setAttribute('disabled', true);
+        updateButton.classList.remove('btn-warning');
     }
 
     let url = _tab.credentials.url;
     url = (url.length > 50) ? url.substring(0, 50) + '...' : url;
-    $('.information-url:first span:first').text(url);
-    $('.information-username:first span:first').text(_tab.credentials.username);
+    $('.information-url span').textContent = url;
+    $('.information-username span').textContent = _tab.credentials.username;
 
-    $('#btn-new').click(function(e) {
+    $('#btn-new').addEventListener('click', function(e) {
         browser.runtime.sendMessage({
             action: 'add_credentials',
             args: [_tab.credentials.username, _tab.credentials.password, _tab.credentials.url]
         }).then(_verifyResult);
     });
 
-    $('#btn-update').click(function(e) {
+    $('#btn-update').addEventListener('click', function(e) {
         e.preventDefault();
 
         //  only one entry which could be updated
@@ -39,49 +41,52 @@ function _initialize(tab) {
             }).then(_verifyResult);
         }
         else {
-            $('.credentials:first .username-new:first strong:first').text(_tab.credentials.username);
-            $('.credentials:first .username-exists:first strong:first').text(_tab.credentials.username);
+            $('.credentials .username-new strong').textContent = _tab.credentials.username;
+            $('.credentials .username-exists strong').textContent = _tab.credentials.username;
 
             if (_tab.credentials.usernameExists) {
-                $('.credentials:first .username-new:first').hide();
-                $('.credentials:first .username-exists:first').show();
+                $('.credentials .username-new').style.display = 'none';
+                $('.credentials .username-exists').style.display = 'block';
             }
             else {
-                $('.credentials:first .username-new:first').show();
-                $('.credentials:first .username-exists:first').hide();
+                $('.credentials .username-new').style.display = 'block';
+                $('.credentials .username-exists').style.display = 'none';
             }
 
             for (let i = 0; i < _tab.credentials.list.length; i++) {
-                let $a = $('<a>')
-                    .attr('href', '#')
-                    .text(_tab.credentials.list[i].login + ' (' + _tab.credentials.list[i].name + ')')
-                    .data('entryId', i)
-                    .click(function(e) {
-                        e.preventDefault();
-                        browser.runtime.sendMessage({
-                            action: 'update_credentials',
-                            args: [_tab.credentials.list[$(this).data('entryId')].uuid, _tab.credentials.username, _tab.credentials.password, _tab.credentials.url]
-                        }).then(_verifyResult);
-                    });
+                let a = document.createElement('a');
+                a.href = "#";
+                a.textContent = _tab.credentials.list[i].login + ' (' + _tab.credentials.list[i].name + ')';
+                a.setAttribute('entryId', i);
+                a.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    browser.runtime.sendMessage({
+                        action: 'update_credentials',
+                        args: [_tab.credentials.list[a.getAttribute('entryId')].uuid, _tab.credentials.username, _tab.credentials.password, _tab.credentials.url]
+                    }).then(_verifyResult);
+                });
+
 
                 if (_tab.credentials.usernameExists && _tab.credentials.username === _tab.credentials.list[i].login) {
-                    $a.css('font-weight', 'bold');
+                    a.style.fontWeigth = 'bold';
                 }
 
-                const $li = $('<li class=\"list-group-item\">').append($a);
-                $('ul#list').append($li);
+                const li = document.createElement('li');
+                li.classList.add('list-group-item');
+                li.append(a);
+                $('ul#list').append(li);
             }
 
-            $('.credentials').show();
+            $('.credentials').style.display = 'block';
         }
     });
 
-    $('#btn-dismiss').click(function(e) {
+    $('#btn-dismiss').addEventListener('click', function(e) {
         e.preventDefault();
         _close();
     });
 
-    $('#btn-ignore').click(function(e) {
+    $('#btn-ignore').addEventListener('click', function(e) {
         browser.windows.getCurrent().then((win) => {
             browser.tabs.query({ 'active': true, 'currentWindow': true }).then((tabs) => {
                 const tab = tabs[0];
@@ -99,11 +104,11 @@ function _initialize(tab) {
 
 function _connected_database(db) {
     if (db.count > 1 && db.identifier) {
-        $('.connected-database:first em:first').text(db.identifier);
-        $('.connected-database:first').show();
+        $('.connected-database em').textContent = db.identifier;
+        $('.connected-database').style.display = 'block';
     }
     else {
-        $('.connected-database:first').hide();
+        $('.connected-database').style.display = 'none';
     }
 }
 
@@ -126,17 +131,15 @@ function _close() {
     close();
 }
 
-$(function() {
-    browser.runtime.sendMessage({
-        action: 'stack_add',
-        args: ['icon_remember_red_background_19x19.png', 'popup_remember.html', 10, true, 0]
-    });
-
-    browser.runtime.sendMessage({
-        action: 'get_tab_information'
-    }).then(_initialize);
-
-    browser.runtime.sendMessage({
-        action: 'get_connected_database'
-    }).then(_connected_database);
+browser.runtime.sendMessage({
+    action: 'stack_add',
+    args: ['icon_remember_red_background_19x19.png', 'popup_remember.html', 10, true, 0]
 });
+
+browser.runtime.sendMessage({
+    action: 'get_tab_information'
+}).then(_initialize);
+
+browser.runtime.sendMessage({
+    action: 'get_connected_database'
+}).then(_connected_database);

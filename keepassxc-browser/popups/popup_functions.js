@@ -1,38 +1,44 @@
 'use strict';
 
-var $ = jQuery.noConflict(true);
+var $ = function(elem)
+{
+    return document.querySelector(elem);
+};
 
 function updateAvailableResponse(available) {
     if (available) {
-        $('#update-available').show();
+        $('#update-available').style.display = 'block';
     }
 }
 
 function initSettings() {
-    $('#settings #btn-options').click(function() {
-        browser.runtime.openOptionsPage().then(close());
-    });
+    const optionsButton = $('#settings #btn-options');
+    if (optionsButton) {
+        optionsButton.addEventListener('click', function() {
+            browser.runtime.openOptionsPage().then(close());
+        });
+    }
 
-    $('#settings #btn-choose-credential-fields').click(function() {
-        browser.windows.getCurrent().then((win) => {
-            browser.tabs.query({ 'active': true, 'currentWindow': true }).then((tabs) => {
-                const tab = tabs[0];
-                browser.runtime.getBackgroundPage().then((global) => {
-                    browser.tabs.sendMessage(tab.id, {
-                        action: 'choose_credential_fields'
+    const chooseCredentialsButton = $('#settings #btn-choose-credential-fields');
+    if (chooseCredentialsButton) {
+        chooseCredentialsButton.addEventListener('click', function() {
+            browser.windows.getCurrent().then((win) => {
+                browser.tabs.query({ 'active': true, 'currentWindow': true }).then((tabs) => {
+                    const tab = tabs[0];
+                    browser.runtime.getBackgroundPage().then((global) => {
+                        browser.tabs.sendMessage(tab.id, {
+                            action: 'choose_credential_fields'
+                        });
+                        close();
                     });
-                    close();
                 });
             });
         });
-    });
+    }
 }
 
+initSettings();
 
-$(function() {
-    initSettings();
-
-    browser.runtime.sendMessage({
-        action: 'update_available_keepassxc'
-    }).then(updateAvailableResponse);
-});
+browser.runtime.sendMessage({
+    action: 'update_available_keepassxc'
+}).then(updateAvailableResponse);
